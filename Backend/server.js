@@ -7,6 +7,8 @@ const generateResponse = require('./src/service/ai.service')
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
+const chatHistory = []
+
 io.on("connection", (socket) => {
     console.log("a user connected");
 
@@ -19,8 +21,15 @@ io.on("connection", (socket) => {
         
     })
     socket.on("ai-message",async(data)=>{
-       const response = await generateResponse(data);
-       console.log(response);
+        chatHistory.push({
+            role:'user',
+            parts:[{text:data}],
+        })
+       const response = await generateResponse(chatHistory);
+       chatHistory.push({
+        role:"model",
+        parts:[{text:response}],
+       })
        socket.emit("ai-message-response",(response))
     })
 });
